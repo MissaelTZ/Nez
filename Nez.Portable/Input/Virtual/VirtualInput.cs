@@ -30,6 +30,14 @@
 			Input._virtualInputs.Add(this);
 		}
 
+		/// <summary>
+		/// Register this virtual input to the Input system so it's automatically updated.
+		/// </summary>
+		public void Register()
+		{
+			if(!Input._virtualInputs.Contains(this))
+				Input._virtualInputs.Add(this);
+		}
 
 		/// <summary>
 		/// deregisters the VirtualInput from the Input system. Call this when you are done polling the VirtualInput
@@ -37,6 +45,7 @@
 		public void Deregister()
 		{
 			Input._virtualInputs.Remove(this);
+			Input.RemoveVirtualInput(this);
 		}
 
 		public abstract void Update();

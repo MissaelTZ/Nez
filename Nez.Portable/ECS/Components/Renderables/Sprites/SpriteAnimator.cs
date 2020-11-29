@@ -180,10 +180,20 @@ namespace Nez.Sprites
 		#region Playback
 
 		/// <summary>
-		/// plays the animation with the given name. If no loopMode is specified it is defaults to Loop
+		/// plays the animation with the given name. If no loopMode is specified it is defaults to Loop.
+		/// If the requested animation is the one currently playing it will only unpause it.
+		/// If the a diferent loop mode is given it will reset the animation and change the loop mode.
 		/// </summary>
 		public void Play(string name, LoopMode? loopMode = null)
 		{
+			if (CurrentAnimationName == name)
+			{
+				if (loopMode != null && loopMode != _loopMode)
+					Reset(loopMode);
+				UnPause();
+				return;
+			}
+
 			CurrentAnimation = _animations[name];
 			CurrentAnimationName = name;
 			CurrentFrame = 0;
@@ -192,6 +202,20 @@ namespace Nez.Sprites
 			Sprite = CurrentAnimation.Sprites[0];
 			_elapsedTime = 0;
 			_loopMode = loopMode ?? LoopMode.Loop;
+		}
+
+		/// <summary>
+		/// Reset's the curren animation to the beginning,
+		/// if no loop mode is given uses the already set.
+		/// </summary>
+		/// <param name="loopMode">Optional new loop mode.</param>
+		public void Reset(LoopMode? loopMode = null)
+		{
+			CurrentFrame = 0;
+			AnimationState = State.Running;
+			Sprite = CurrentAnimation.Sprites[0];
+			_elapsedTime = 0;
+			_loopMode = loopMode ?? _loopMode;
 		}
 
 		/// <summary>

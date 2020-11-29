@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
 
 
@@ -295,6 +296,93 @@ namespace Nez
 		public static void Transform(Vector2[] sourceArray, ref Matrix2D matrix, Vector2[] destinationArray)
 		{
 			Transform(sourceArray, 0, ref matrix, destinationArray, 0, sourceArray.Length);
+		}
+
+
+		/// <summary>
+		/// Applies an uniform delta approach towards another vector
+		/// </summary>
+		/// <param name="vector">The vector to move</param>
+		/// <param name="towards">The vector to approach</param>
+		/// <param name="delta">The uniform movement</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static void MoveTowards(ref Vector2 vector, Vector2 towards, float delta)
+		{
+			Vector2 vd = towards - vector;
+			float len = vd.Length();
+			vector = len <= delta ? towards : vector + vd / len * delta;
+		}
+
+
+		/// <summary>
+		/// Applies an uniform delta approach towards another vector
+		/// </summary>
+		/// <param name="vector"></param>
+		/// <param name="towards">The vector to approach</param>
+		/// <param name="delta">The uniform movement</param>
+		/// <returns>The resulting vector</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static Vector2 MoveTowards(this Vector2 vector, Vector2 towards, float delta)
+		{
+			Vector2 vd = towards - vector;
+			float len = vd.Length();
+			return len <= delta || len < Mathf.Epsilon ? towards : vector + vd / len * delta;
+		}
+
+
+		/// <summary>
+		/// Returns the Dot product applied to the given vector
+		/// </summary>
+		/// <param name="vector"></param>
+		/// <param name="other">The other vector</param>
+		/// <returns>The dot product</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float Dot(this Vector2 vector, Vector2 other)
+		{
+			var v1 = Normalize(vector);
+			var v2 = Normalize(other);
+			return v1.X * v2.X + v1.Y * v2.Y;
+		}
+
+
+		/// <summary>
+		/// Returns a new Vector2 with absolute values
+		/// </summary>
+		/// <param name="vector"></param>
+		/// <param name="other">The other vector</param>
+		/// <returns>The dot product</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static Vector2 Abs(this Vector2 vector)
+		{
+			return new Vector2(Math.Abs(vector.X), Math.Abs(vector.Y));
+		}
+
+
+		/// <summary>
+		/// Finds the closest vector in the list
+		/// </summary>
+		/// <param name="vector">The vector to be comparer</param>
+		/// <param name="vectors">The list of vectors to find</param>
+		/// <returns>the closest vector</returns>
+		public static Vector2 Closest(Vector2 vector, params Vector2[] vectors)
+		{
+			int closest = -1;
+			float distance = float.PositiveInfinity;
+			float temp;
+
+			for(int i = 0; i < vectors.Length; i++)
+			{
+				Vector2.Distance(ref vector, ref vectors[i], out temp);
+				if (temp < distance)
+				{
+					distance = temp;
+					closest = i;
+				}
+			}
+
+			if (closest >= 0)
+				return vectors[closest];
+			return vector;
 		}
 	}
 }

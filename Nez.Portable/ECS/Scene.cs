@@ -161,6 +161,8 @@ namespace Nez
 			get => _finalRenderDelegate;
 		}
 
+		public Point DesignResolutionSize => _designResolutionSize;
+
 		IFinalRenderDelegate _finalRenderDelegate;
 
 
@@ -544,6 +546,7 @@ namespace Nez
 		                                int horizontalBleed = 0, int verticalBleed = 0)
 		{
 			_designResolutionSize = new Point(width, height);
+			Camera.ForceMatrixUpdate();
 			_resolutionPolicy = sceneResolutionPolicy;
 			if (_resolutionPolicy == SceneResolutionPolicy.BestFit)
 				_designBleedSize = new Point(horizontalBleed, verticalBleed);

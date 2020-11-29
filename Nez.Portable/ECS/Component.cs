@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 
@@ -20,6 +22,8 @@ namespace Nez
 		/// </summary>
 		public Entity Entity;
 
+		#region Entity's Transform
+
 		/// <summary>
 		/// shortcut to entity.transform
 		/// </summary>
@@ -28,6 +32,165 @@ namespace Nez
 		{
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			get => Entity.Transform;
+		}
+
+		#region Global
+
+		[NotInspectable]
+		public Vector2 Position
+		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get => Entity.Transform.Position;
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			set => Entity.Transform.Position = value;
+		}
+
+		[NotInspectable]
+		public Vector2 Scale
+		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get => Entity.Transform.Scale;
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			set => Entity.Transform.Scale = value;
+		}
+
+		[NotInspectable]
+		public float Rotation
+		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get => Entity.Transform.Rotation;
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			set => Entity.Transform.Rotation = value;
+		}
+
+		[NotInspectable]
+		public float RotationDegrees
+		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get => Entity.Transform.RotationDegrees;
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			set => Entity.Transform.RotationDegrees = value;
+		}
+
+		#endregion
+
+		#region Local
+
+		[NotInspectable]
+		public Vector2 LocalPosition
+		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get => Entity.Transform.LocalPosition;
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			set => Entity.Transform.LocalPosition = value;
+		}
+
+		[NotInspectable]
+		public Vector2 LocalScale
+		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get => Entity.Transform.LocalScale;
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			set => Entity.Transform.LocalScale = value;
+		}
+
+		[NotInspectable]
+		public float LocalRotation
+		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get => Entity.Transform.LocalRotation;
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			set => Entity.Transform.LocalRotation = value;
+		}
+
+		[NotInspectable]
+		public float LocalRotationDegrees
+		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get => Entity.Transform.LocalRotationDegrees;
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			set => Entity.Transform.LocalRotationDegrees = value;
+		}
+
+		#endregion
+
+		/// <summary>
+		/// Entity's parent accesor
+		/// </summary>
+		/// <value>The parent entity.</value>
+		public Entity Parent
+		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get => Entity.GetParent<Entity>();
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			set => Entity.SetParent(value);
+		}
+
+		#endregion
+
+		/// <summary>
+		/// Gets the entity's component of the given type
+		/// </summary>
+		/// <typeparam name="T">Component type</typeparam>
+		/// <returns>The component</returns>
+		public T GetComponent<T>() where T : Component
+		{
+			return Entity.GetComponent<T>();
+		}
+
+		/// <summary>
+		/// Gets the first Component of type T and returns it. If no Component is found the Component will be created.
+		/// </summary>
+		/// <returns>The component.</returns>
+		/// <typeparam name="T">The 1st type parameter.</typeparam>
+		public T GetOrCreateComponent<T>() where T : Component, new()
+		{
+			var comp = Entity.GetComponent<T>(true);
+			if (comp == null)
+				comp = Entity.AddComponent<T>();
+
+			return comp;
+		}
+
+		/// <summary>
+		/// Gets the component of the given type only if it's initialized
+		/// </summary>
+		/// <typeparam name="T">The component type</typeparam>
+		/// <param name="onlyReturnInitializedComponents">Whether it should be initialized</param>
+		/// <returns>The component.</returns>
+		public T GetComponent<T>(bool onlyReturnInitializedComponents) where T : Component
+		{
+			return GetComponent<T>(onlyReturnInitializedComponents);
+		}
+
+		/// <summary>
+		/// Creates a list of components of the given type
+		/// </summary>
+		/// <typeparam name="T">The components type</typeparam>
+		/// <returns>A list of components</returns>
+		public List<T> GetComponents<T>() where T : Component
+		{
+			return Entity.GetComponents<T>();
+		}
+
+		/// <summary>
+		/// Fills the given list with the components of the given type
+		/// </summary>
+		/// <typeparam name="T">The components type</typeparam>
+		/// <param name="componentsList">The list to be filled</param>
+		public void GetComponents<T>(List<T> componentsList) where T : Component
+		{
+			Entity.GetComponents(componentsList);
+		}
+
+		/// <summary>
+		/// Returns the parent
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <returns></returns>
+		public T GetParent<T>() where T : Entity
+		{
+			return Entity.GetParent<T>();
 		}
 
 		/// <summary>

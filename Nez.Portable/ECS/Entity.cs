@@ -97,6 +97,14 @@ namespace Nez
 			set => Transform.SetParent(value);
 		}
 
+		public Entity ParentEntity
+		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get => Transform.Parent?.Entity;
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			set => Transform.SetParent(value.Transform);
+		}
+
 		public int ChildCount
 		{
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -187,6 +195,19 @@ namespace Nez
 
 		#endregion
 
+
+		public T GetParent<T>() where T : Entity
+		{
+			if (ParentEntity != null)
+			{
+				if (ParentEntity is T parent)
+					return parent;
+				throw new InvalidCastException(
+					$"The parent <{Parent.Entity.Name}> type's is {Parent.Entity.GetType()} can't be casted to {typeof(T)}"
+				);
+			}
+			return null;
+		}
 
 		public Entity(string name)
 		{

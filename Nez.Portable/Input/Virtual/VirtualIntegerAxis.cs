@@ -132,9 +132,9 @@ namespace Nez
 		/// <param name="overlapBehavior">Overlap behavior.</param>
 		/// <param name="negative">Negative.</param>
 		/// <param name="positive">Positive.</param>
-		public VirtualIntegerAxis AddKeyboardKeys(OverlapBehavior overlapBehavior, Keys negative, Keys positive)
+		public VirtualIntegerAxis AddKeyboardKeys(Keys negative, Keys positive, OverlapBehavior overlapBehavior = OverlapBehavior.TakeNewer)
 		{
-			Nodes.Add(new VirtualAxis.KeyboardKeys(overlapBehavior, negative, positive));
+			Nodes.Add(new VirtualAxis.KeyboardKeys(negative, positive, overlapBehavior));
 			return this;
 		}
 

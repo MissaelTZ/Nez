@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-
+using System.Linq;
 
 namespace Nez
 {
@@ -8,6 +8,13 @@ namespace Nez
 	/// </summary>
 	public class ColliderTriggerHelper
 	{
+		enum TriggerType : byte
+		{
+			Enter, // New collision
+			Pulse, // Already existing collision
+			Exit   // Collision stops existing
+		}
+
 		Entity _entity;
 
 		/// <summary>
@@ -40,6 +47,8 @@ namespace Nez
 			for (var i = 0; i < colliders.Count; i++)
 			{
 				var collider = colliders[i];
+				if (!collider.Enabled)
+					continue;
 
 				// fetch anything that we might collide with us at our new position
 				var neighbors = Physics.BoxcastBroadphase(collider.Bounds, collider.CollidesWithLayers);
@@ -57,7 +66,7 @@ namespace Nez
 						var shouldReportTriggerEvent = !_activeTriggerIntersections.Contains(pair) &&
 						                               !_previousTriggerIntersections.Contains(pair);
 						if (shouldReportTriggerEvent)
-							NotifyTriggerListeners(pair, true);
+							NotifyTriggerListeners(pair, TriggerType.Enter);
 
 						_activeTriggerIntersections.Add(pair);
 					} // overlaps
@@ -66,7 +75,17 @@ namespace Nez
 
 			ListPool<Collider>.Free(colliders);
 
+			CheckCurrentCollisions();
 			CheckForExitedColliders();
+		}
+
+
+		void CheckCurrentCollisions()
+		{
+			var currentCollisions = _previousTriggerIntersections.Intersect(_activeTriggerIntersections);
+
+			foreach (var pair in currentCollisions)
+				NotifyTriggerListeners(pair, TriggerType.Pulse);
 		}
 
 
@@ -76,7 +95,7 @@ namespace Nez
 			_previousTriggerIntersections.ExceptWith(_activeTriggerIntersections);
 
 			foreach (var pair in _previousTriggerIntersections)
-				NotifyTriggerListeners(pair, false);
+				NotifyTriggerListeners(pair, TriggerType.Exit);
 
 			// clear out the previous set cause we are done with it for now
 			_previousTriggerIntersections.Clear();
@@ -89,17 +108,17 @@ namespace Nez
 		}
 
 
-		void NotifyTriggerListeners(Pair<Collider> collisionPair, bool isEntering)
+		void NotifyTriggerListeners(Pair<Collider> collisionPair, TriggerType type)
 		{
 			// call the onTriggerEnter method for any relevant components
 			collisionPair.First.Entity.GetComponents(_tempTriggerList);
 			for (var i = 0; i < _tempTriggerList.Count; i++)
 			{
-				if (isEntering)
-					_tempTriggerList[i].OnTriggerEnter(collisionPair.Second, collisionPair.First);
-				else
-					_tempTriggerList[i].OnTriggerExit(collisionPair.Second, collisionPair.First);
+				NotifyTriggerListener(_tempTriggerList[i], collisionPair.Second, collisionPair.First, type);
 			}
+
+			if (_entity is ITriggerListener)
+				NotifyTriggerListener((ITriggerListener)_entity, collisionPair.Second, collisionPair.First, type);
 
 			_tempTriggerList.Clear();
 
@@ -109,14 +128,24 @@ namespace Nez
 				collisionPair.Second.Entity.GetComponents(_tempTriggerList);
 				for (var i = 0; i < _tempTriggerList.Count; i++)
 				{
-					if (isEntering)
-						_tempTriggerList[i].OnTriggerEnter(collisionPair.First, collisionPair.Second);
-					else
-						_tempTriggerList[i].OnTriggerExit(collisionPair.First, collisionPair.Second);
+					NotifyTriggerListener(_tempTriggerList[i], collisionPair.First, collisionPair.Second, type);
 				}
+
+				if (collisionPair.Second.Entity is ITriggerListener listener)
+					NotifyTriggerListener(listener, collisionPair.Second, collisionPair.First, type);
 
 				_tempTriggerList.Clear();
 			}
+		}
+
+		void NotifyTriggerListener(ITriggerListener listener, Collider first, Collider second, TriggerType type)
+		{
+			if (type == TriggerType.Enter)
+				listener.OnTriggerEnter(first, second);
+			else if (type == TriggerType.Exit)
+				listener.OnTriggerExit(first, second);
+			else
+				listener.OnCollisioning(first, second);
 		}
 	}
 }

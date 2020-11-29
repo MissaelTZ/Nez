@@ -37,6 +37,49 @@ namespace Nez
 
 		#endregion
 
+		/// <summary>
+		/// Defines the size of the camera in pixels, usefull 
+		/// for upscaling the render without losing quality
+		/// </summary>
+		/// <value>The camera size in pixels</value>
+		public Vector2 Resoulution
+		{
+			get
+			{
+				if(_resolution != null)
+					return _resolution.Value;
+				return DesignResolutionSize.ToVector2();
+			}
+			set => SetResolution(value);
+		}
+
+		/// <summary>
+		/// The width in pixels the camera will show
+		/// </summary>
+		public float Width
+		{
+			get
+			{
+				if (_resolution != null)
+					return _resolution.Value.X;
+				return DesignResolutionSize.X;
+			}
+			set => SetResolution(new Vector2(value, Height));
+		}
+
+		/// <summary>
+		/// The height in pixels the camera will show
+		/// </summary>
+		public float Height
+		{
+			get
+			{
+				if(_resolution != null)
+					return _resolution.Value.Y;
+				return DesignResolutionSize.Y;
+			}
+			set => SetResolution(new Vector2(Width, value));
+		}
 
 		/// <summary>
 		/// shortcut to entity.transform.position
@@ -209,8 +252,8 @@ namespace Nez
 			{
 				if (_isProjectionMatrixDirty)
 				{
-					Matrix.CreateOrthographicOffCenter(0, Core.GraphicsDevice.Viewport.Width,
-						Core.GraphicsDevice.Viewport.Height, 0, 0, -1, out _projectionMatrix);
+					Matrix.CreateOrthographicOffCenter(0, Width,
+						Height, 0, 0, -1, out _projectionMatrix);
 					_isProjectionMatrixDirty = false;
 				}
 
@@ -271,6 +314,9 @@ namespace Nez
 		}
 
 
+		private Point DesignResolutionSize => new Point(Core.GraphicsDevice.Viewport.Width, Core.GraphicsDevice.Viewport.Height);
+
+
 		float _zoom;
 		float _minimumZoom = 0.3f;
 		float _maximumZoom = 3f;
@@ -280,6 +326,7 @@ namespace Nez
 		Matrix2D _inverseTransformMatrix = Matrix2D.Identity;
 		Matrix _projectionMatrix;
 		Vector2 _origin;
+		Vector2? _resolution = null;
 
 		bool _areMatrixesDirty = true;
 		bool _areBoundsDirty = true;
@@ -319,9 +366,17 @@ namespace Nez
 			_transformMatrix =
 				Matrix2D.CreateTranslation(-Entity.Transform.Position.X, -Entity.Transform.Position.Y); // position
 
-			if (_zoom != 1f)
+			if (_zoom != 1f || (_resolution != null && _resolution != DesignResolutionSize.ToVector2()))
 			{
-				Matrix2D.CreateScale(_zoom, _zoom, out tempMat); // scale ->
+				float scaledZoomX = _zoom;
+				float scaledZoomY = _zoom;
+				if(_resolution != null)
+				{
+					scaledZoomX *= (DesignResolutionSize.X / _resolution.Value.X);
+					scaledZoomY *= (DesignResolutionSize.Y / _resolution.Value.Y);
+				}
+
+				Matrix2D.CreateScale(scaledZoomX, scaledZoomY, out tempMat); // scale ->
 				Matrix2D.Multiply(ref _transformMatrix, ref tempMat, out _transformMatrix);
 			}
 
@@ -389,6 +444,21 @@ namespace Nez
 		public Camera SetRotationDegrees(float degrees)
 		{
 			Entity.Transform.SetRotationDegrees(degrees);
+			return this;
+		}
+
+
+		/// <summary>
+		/// Sets the camera size in in-world pixel size
+		/// </summary>
+		/// <param name="size">Size.</param>
+		public Camera SetResolution(Vector2? size)
+		{
+			if (size != _resolution)
+			{
+				_resolution = size;
+				_areMatrixesDirty = true;
+			}
 			return this;
 		}
 

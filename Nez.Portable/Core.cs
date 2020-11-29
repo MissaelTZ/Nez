@@ -195,6 +195,26 @@ namespace Nez
 		}
 
 
+		#region Game Lifecycle
+
+		protected virtual void OnStart()
+		{ }
+
+		protected virtual void OnUpdate()
+		{ }
+
+		protected virtual void BeforeDraw()
+		{ }
+
+		protected virtual void AfterDraw()
+		{ }
+
+		protected virtual void OnClose()
+		{ }
+
+		#endregion
+
+
 		#region Passthroughs to Game
 
 		public new static void Exit()
@@ -215,10 +235,14 @@ namespace Nez
 			GraphicsDevice = base.GraphicsDevice;
 			var font = Content.Load<BitmapFont>("nez://Nez.Content.NezDefaultBMFont.xnb");
 			Graphics.Instance = new Graphics(font);
+
+			OnStart();
 		}
 
 		protected override void Update(GameTime gameTime)
 		{
+			OnUpdate();
+
 			if (PauseOnFocusLost && !IsActive)
 			{
 				SuppressDraw();
@@ -280,6 +304,8 @@ namespace Nez
 
 		protected override void Draw(GameTime gameTime)
 		{
+			BeforeDraw();
+
 			if (PauseOnFocusLost && !IsActive)
 				return;
 
@@ -320,10 +346,13 @@ namespace Nez
 			}
 
 			EndDebugDraw();
+
+			AfterDraw();
 		}
 
 		protected override void OnExiting(object sender, EventArgs args)
 		{
+			OnClose();
 			base.OnExiting(sender, args);
 			Emitter.Emit(CoreEvents.Exiting);
 		}

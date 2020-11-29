@@ -3,7 +3,8 @@ using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using Nez.Systems;
 using System.Runtime.CompilerServices;
-
+using System;
+using System.Linq;
 
 namespace Nez
 {
@@ -21,6 +22,7 @@ namespace Nez
 		static MouseState _previousMouseState;
 		static MouseState _currentMouseState;
 		static internal FastList<VirtualInput> _virtualInputs = new FastList<VirtualInput>();
+		static internal Dictionary<string, VirtualInput> _inputBindings = new Dictionary<string, VirtualInput>();
 		static int _maxSupportedGamePads;
 
 		/// <summary>
@@ -358,6 +360,78 @@ namespace Nez
 				pastPos *= _resolutionScale;
 				return ScaledMousePosition - pastPos;
 			}
+		}
+
+		#endregion
+
+
+		#region Virtual Input Bindings
+
+		/// <summary>
+		/// Adds a virtual input so it can be globally accesable.
+		/// If the given name is already in use it throws an exception and deregister from the updatables virtual inputs.
+		/// </summary>
+		/// <param name="name">The name of the virtual input.</param>
+		/// <param name="input">The virtual input.</param>
+		/// <returns>The virtual input.</returns>
+		public static VirtualInput AddVirtualInput(string name, VirtualInput input)
+		{
+			if (_inputBindings.ContainsKey(name))
+			{
+				input.Deregister();
+				throw new Exception($"The key '{name}' already exists.");
+			}
+			_inputBindings.Add(name, input);
+			return input;
+		}
+
+
+		/// <summary>
+		/// Removes the virtual input associated to the name.
+		/// </summary>
+		/// <param name="name">The virtual input name.</param>
+		public static void RemoveVirtualInput(string name)
+		{
+			if (_inputBindings.TryGetValue(name, out var input))
+			{
+				input.Deregister();
+				_inputBindings.Remove(name);
+			}
+		}
+
+		/// <summary>
+		/// Removes the virtual input associated to the name.
+		/// </summary>
+		/// <param name="name">The virtual input name.</param>
+		public static void RemoveVirtualInput(VirtualInput input)
+		{
+			var value = _inputBindings.FirstOrDefault(x => x.Value == input);
+			if (value.Value != null)
+				_inputBindings.Remove(value.Key);
+		}
+
+		/// <summary>
+		/// Finds the virtual input.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns>The virtual input or null</returns>
+		public static T GetVirtualInput<T>(string name) where T : VirtualInput
+			=> _inputBindings[name] as T ?? null;
+
+		/// <summary>
+		/// Finds the virtual input.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns>The virtual input or null</returns>
+		public static VirtualInput GetVirtualInput(string name) => _inputBindings[name];
+
+		/// <summary>
+		/// Removes all virtual inputs from the updating and removes all bindings.
+		/// </summary>
+		public static void ClearVirtualInputs()
+		{
+			_virtualInputs.Clear();
+			_inputBindings.Clear();
 		}
 
 		#endregion

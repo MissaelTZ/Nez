@@ -16,6 +16,13 @@
 		void OnTriggerEnter(Collider other, Collider local);
 
 		/// <summary>
+		/// Helper function for notifying when the collision is still occuring but is not entering (It isn't a new collision).
+		/// </summary>
+		/// <param name="other">Remote.</param>
+		/// <param name="loca">Local.</param>
+		void OnCollisioning(Collider other, Collider local);
+
+		/// <summary>
 		/// called when another collider leaves a trigger collider.
 		/// </summary>
 		/// <param name="remote">Remote.</param>
